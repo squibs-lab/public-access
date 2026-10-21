@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Public Access</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --osd: #7dff9b;
+    --osd-dim: rgba(125, 255, 155, .55);
+    --ink: #f4f1e8;
+    --bg: #050505;
+    --font: "VT323", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; background: var(--bg); color: var(--ink); overflow: hidden; font-family: var(--font); }
+
+  #screen { position: fixed; inset: 0; background: #000; }
+  #player, #screen iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; }
+
+  /* Static + scanlines sit on top of the video */
+  #static { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; opacity: 0; transition: opacity .25s; pointer-events: none; }
+  #static.on { opacity: 1; transition: none; }
+  #scan { position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(0,0,0,.18) 0 1px, transparent 1px 3px);
+    box-shadow: inset 0 0 18vmin rgba(0,0,0,.75); }
+
+  /* Click-catcher: the whole screen is the remote's CH+ button */
+  #remote { position: absolute; inset: 0; cursor: pointer; }
+  body.idle #remote { cursor: none; }
+
+  .osd { position: absolute; color: var(--osd); text-shadow: 0 0 6px rgba(125,255,155,.6), 2px 2px 0 #000; pointer-events: none; transition: opacity .6s; }
+  body.hide-osd .fade { opacity: 0; }
+
+  #ch { top: 4vmin; right: 5vmin; font-size: clamp(40px, 9vmin, 96px); line-height: 1; letter-spacing: .04em; }
+  #clock { top: 4vmin; left: 5vmin; font-size: clamp(20px, 3.4vmin, 34px); color: var(--osd-dim); }
+
+  #shade { position: absolute; left: 0; right: 0; bottom: 0; height: 55%; pointer-events: none; transition: opacity .6s;
+    background: linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,.45) 45%, transparent); }
+  body.hide-osd #shade { opacity: 0; }
+  #lower { left: 5vmin; right: 5vmin; bottom: 4vmin; display: flex; flex-direction: column; gap: 2.4vmin; }
+  #info { max-width: 900px; }
+  #info .tag { display: inline-block; font-size: clamp(16px, 2.6vmin, 26px); padding: 0 .4em; background: var(--osd); color: #000; text-shadow: none; margin-bottom: .3em; }
+  #info .who { font-size: clamp(28px, 6vmin, 64px); line-height: .95; color: var(--ink); text-shadow: 2px 2px 0 #000, 0 0 12px rgba(0,0,0,.8); }
+  #info .what { font-size: clamp(18px, 3vmin, 30px); color: var(--ink); opacity: .85; margin-top: .25em; text-shadow: 1px 1px 0 #000; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #info .meta { font-size: clamp(18px, 3vmin, 30px); margin-top: .35em; }
+  .rec { color: #ff4d4d; text-shadow: 0 0 6px rgba(255,77,77,.7); animation: blink 1.4s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  #guide { display: flex; gap: 2.2vmin; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; font-size: clamp(16px, 2.6vmin, 26px); pointer-events: auto; white-space: nowrap; }
+  #guide::-webkit-scrollbar { display: none; }
+  #guide button { all: unset; cursor: pointer; color: var(--osd-dim); padding: 0 .3em; }
+  #guide button:hover { color: var(--osd); }
+  #guide button[aria-pressed="true"] { color: #000; background: var(--osd); text-shadow: none; }
+  #guide button:disabled { opacity: .3; cursor: default; }
+  #guide kbd { font: inherit; opacity: .6; margin-right: .25em; }
+
+
+  #toast { top: 4vmin; left: 50%; transform: translateX(-50%); font-size: clamp(20px, 3.4vmin, 34px); background: rgba(0,0,0,.6); padding: .1em .6em; opacity: 0; transition: opacity .3s; white-space: nowrap; }
+  #toast.show { opacity: 1; }
+  #nosignal { inset: 0; display: none; place-items: center; text-align: center; font-size: clamp(28px, 7vmin, 72px); }
+  #nosignal small { display: block; font-size: .4em; color: var(--osd-dim); margin-top: .5em; }
+  body.empty #nosignal { display: grid; }
+  body.empty #info, body.empty #ch, body.empty #shade, body.empty #player { display: none; }
+  body.empty #nosignal { background: #000; }
+
+  /* Power-on screen */
+  #power { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; background: radial-gradient(circle at 50% 45%, #141414, #000 70%); cursor: pointer; text-align: center; }
+  #power h1 { font-weight: 400; font-size: clamp(44px, 11vmin, 130px); line-height: .9; color: var(--ink); letter-spacing: .02em; }
+  #power p { font-size: clamp(18px, 3.2vmin, 32px); color: var(--osd); margin-top: 1.2em; animation: blink 1.6s steps(1) infinite; }
+  #power .sub { color: #8a877f; font-size: clamp(16px, 2.6vmin, 26px); margin-top: .6em; animation: none; }
+  #power .keys { font-size: clamp(14px, 2.1vmin, 21px); color: #5d5b55; margin-top: 2.5em; padding: 0 16px; }
+  body.on #power { display: none; }
+</style>
+</head>
+<body class="hide-osd">
+
+<div id="screen">
+  <div id="player"></div>
+  <canvas id="static" width="320" height="180"></canvas>
+  <div id="scan"></div>
+  <div id="remote" title="Click for the next channel"></div>
+
+  <div id="clock" class="osd fade"></div>
+  <div id="ch" class="osd fade"></div>
+
+  <div id="shade"></div>
+  <div id="lower" class="osd">
+  <div id="info" class="fade">
+    <div class="tag" id="i-cat"></div>
+    <div class="who" id="i-who"></div>
+    <div class="what" id="i-what"></div>
+    <div class="meta"><span class="rec">●</span> LIVE <span id="i-meta"></span></div>
+  </div>
+
+  <div id="guide" class="fade" role="toolbar" aria-label="Categories"></div>
+  </div>
+  <div id="toast" class="osd"></div>
+  <div id="nosignal" class="osd"><div>NO SIGNAL<small id="ns-msg">checking the airwaves…</small></div></div>
+
+</div>
+
+<div id="power">
+  <div>
+    <h1>PUBLIC<br>ACCESS</h1>
+    <p>▶ CLICK OR PRESS ANY KEY TO TURN ON</p>
+    <p class="sub" id="p-count"></p>
+    <p class="sub keys">SPACE or CLICK next · ← back · 0–6 category · M mute · F fullscreen · I info · X reject · U undo</p>
+  </div>
+</div>
+
+<script>
+const CATS = ["all", "worship", "animals", "civic", "scenic", "industrial", "oddities"];
+const BAD_SKIP_MS = 12000;      // give up on a channel that won't play
+const OSD_MS = 6000;            // how long the info stays up after a change
+const REFRESH_MS = 60000;       // re-read the live list
+
+let streams = [];
+let cat = "all";
+let hist = [], histPos = -1;
+let bad = new Set();
+let player = null, playerReady = false;
+let soundOn = true;
+let current = null;
+let skipTimer = null, osdTimer = null;
+const $ = id => document.getElementById(id);
+
+/* ---------- data ---------- */
+async function loadLive() {
+  try {
+    const r = await fetch("live.json", { cache: "no-store" });
+    const d = await r.json();
+    streams = (d.streams || []).filter(s => !bad.has(s.video_id));
+    $("ns-msg").textContent = d.checking ? `checking the airwaves… ${d.progress || ""}` : "nothing live right now. try another category";
+    $("p-count").textContent = streams.length ? `${streams.length} channels on the air` : "tuning…";
+    drawGuide();
+    if (document.body.classList.contains("on") && !current && streams.length) next();
+    document.body.classList.toggle("empty", !pool().length);
+  } catch (e) {
+    $("ns-msg").textContent = "can't reach tv.py. is it still running?";
+    document.body.classList.add("empty");
+  }
+}
+const pool = () => streams.filter(s => (cat === "all" || s.category === cat) && !bad.has(s.video_id) && !rejectedIds.has(s.channel_id));
+
+/* ---------- channel numbers: stable per channel ---------- */
+function chNum(id) {
+  let h = 0;
+  for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return String(h % 999 + 1).padStart(3, "0");
+}
+
+/* ---------- tuning ---------- */
+function next() {
+  const p = pool();
+  if (!p.length) { document.body.classList.add("empty"); return; }
+  document.body.classList.remove("empty");
+  const recent = new Set(hist.slice(-30).map(s => s.video_id));
+  const fresh = p.filter(s => !recent.has(s.video_id));
+  const pick = (fresh.length ? fresh : p)[Math.floor(Math.random() * (fresh.length ? fresh : p).length)];
+  hist = hist.slice(0, histPos + 1);
+  hist.push(pick); histPos = hist.length - 1;
+  tune(pick);
+}
+function back() {
+  if (histPos > 0) { histPos--; tune(hist[histPos]); }
+}
+function tune(s) {
+  current = s;
+  staticOn();
+  showInfo(s);
+  clearTimeout(skipTimer);
+  skipTimer = setTimeout(() => { if (current === s) { bad.add(s.video_id); next(); } }, BAD_SKIP_MS);
+  if (playerReady) player.loadVideoById(s.video_id);
+}
+
+/* ---------- YouTube player ---------- */
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player("player", {
+    width: "100%", height: "100%",
+    host: "https://www.youtube-nocookie.com",
+    playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0, iv_load_policy: 3, modestbranding: 1, playsinline: 1, rel: 0 },
+    events: {
+      onReady: () => { playerReady = true; if (current) player.loadVideoById(current.video_id); },
+      onStateChange: e => {
+        if (e.data === YT.PlayerState.PLAYING) {
+          clearTimeout(skipTimer);
+          soundOn ? player.unMute() : player.mute();
+          staticOff();
+        } else if (e.data === YT.PlayerState.PAUSED && current) {
+          player.playVideo();   // never sit on YouTube's pause screen
+        } else if (e.data === YT.PlayerState.ENDED) {
+          bad.add(current.video_id); next();   // stream went off the air
+        }
+      },
+      onError: () => { if (current) { bad.add(current.video_id); next(); } },
+    },
+  });
+}
+
+/* ---------- static (picture + a little hiss) ---------- */
+const cv = $("static"), cx = cv.getContext("2d");
+const img = cx.createImageData(cv.width, cv.height);
+let staticRaf = null, audio = null, hiss = null;
+function drawStatic() {
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const v = Math.random() * 255 | 0;
+    d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255;
+  }
+  cx.putImageData(img, 0, 0);
+  staticRaf = requestAnimationFrame(drawStatic);
+}
+function staticOn() {
+  cv.classList.add("on");
+  if (!staticRaf) drawStatic();
+  if (soundOn && audio) {
+    hiss && hiss.stop();
+    const buf = audio.createBuffer(1, audio.sampleRate * 0.5, audio.sampleRate);
+    const ch = buf.getChannelData(0);
+    for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / ch.length);
+    const g = audio.createGain(); g.gain.value = 0.06;
+    hiss = audio.createBufferSource(); hiss.buffer = buf;
+    hiss.connect(g).connect(audio.destination); hiss.start();
+  }
+}
+function staticOff() {
+  setTimeout(() => {
+    cv.classList.remove("on");
+    setTimeout(() => { if (!cv.classList.contains("on")) { cancelAnimationFrame(staticRaf); staticRaf = null; } }, 300);
+  }, 250);
+}
+
+/* ---------- on-screen display ---------- */
+const regionName = (() => { try { const dn = new Intl.DisplayNames(["en"], { type: "region" }); return c => { try { return dn.of(c); } catch { return c; } }; } catch { return c => c; } })();
+const flag = c => /^[A-Z]{2}$/.test(c) ? String.fromCodePoint(...[...c].map(x => 0x1F1A5 + x.charCodeAt(0))) : "";
+function onAir(iso) {
+  if (!iso) return "";
+  const m = Math.max(0, Math.round((Date.now() - new Date(iso)) / 60000));
+  if (m < 60) return `on air ${m}m`;
+  const h = Math.floor(m / 60);
+  return h < 48 ? `on air ${h}h ${m % 60}m` : `on air ${Math.floor(h / 24)} days`;
+}
+function showInfo(s) {
+  $("ch").textContent = "CH " + chNum(s.channel_id);
+  $("i-cat").textContent = s.category.toUpperCase();
+  $("i-who").textContent = s.channel_title;
+  $("i-what").textContent = s.title;
+  const parts = [];
+  if (s.country) parts.push(`${flag(s.country)} ${regionName(s.country)}`);
+  if (s.viewers) parts.push(`${s.viewers.toLocaleString()} watching`);
+  const air = onAir(s.started); if (air) parts.push(air);
+  $("i-meta").textContent = parts.length ? "· " + parts.join(" · ") : "";
+  flashOSD();
+}
+function flashOSD() {
+  document.body.classList.remove("hide-osd");
+  clearTimeout(osdTimer);
+  osdTimer = setTimeout(() => document.body.classList.add("hide-osd"), OSD_MS);
+}
+function drawGuide() {
+  const counts = Object.fromEntries(CATS.map(c => [c, c === "all" ? streams.length : streams.filter(s => s.category === c).length]));
+  $("guide").innerHTML = CATS.map((c, i) =>
+    `<button data-cat="${c}" aria-pressed="${c === cat}" ${counts[c] ? "" : "disabled"}><kbd>${i}</kbd>${c.toUpperCase()} ${counts[c]}</button>`).join("");
+}
+$("guide").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  e.stopPropagation(); setCat(b.dataset.cat);
+});
+function setCat(c) {
+  cat = c; drawGuide(); flashOSD();
+  if (!current || (cat !== "all" && current.category !== cat)) next();
+}
+setInterval(() => { $("clock").textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + "  " + new Date().toLocaleDateString([], { weekday: "short" }).toUpperCase(); }, 1000);
+
+/* ---------- controls ---------- */
+function powerOn() {
+  if (document.body.classList.contains("on")) return;
+  document.body.classList.add("on");
+  try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch {}
+  next();
+}
+$("power").addEventListener("click", powerOn);
+$("remote").addEventListener("click", () => next());
+let idleTimer;
+document.addEventListener("mousemove", () => {
+  document.body.classList.remove("idle"); clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => document.body.classList.add("idle"), 2500);
+  if (document.body.classList.contains("on")) flashOSD();
+});
+document.addEventListener("keydown", e => {
+  if (!document.body.classList.contains("on")) { powerOn(); return; }
+  const k = e.key.toLowerCase();
+  if (k === " " || k === "arrowright" || k === "arrowup" || k === "n") { e.preventDefault(); next(); }
+  else if (k === "arrowleft" || k === "arrowdown" || k === "b") { e.preventDefault(); back(); }
+  else if (k === "x") { rejectCurrent(); }
+  else if (k === "u") { undoReject(); }
+  else if (k === "m") { soundOn = !soundOn; if (playerReady) soundOn ? player.unMute() : player.mute(); flashOSD(); }
+  else if (k === "f") { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+  else if (k === "i") { document.body.classList.toggle("hide-osd"); }
+  else if (/^[0-6]$/.test(k) && !$("guide").children[+k].disabled) { setCat(CATS[+k]); }
+});
+
+
+/* ---------- reject (X) / undo (U): local tv.py only ---------- */
+let rejectedIds = new Set(), lastRejected = null;
+async function rejectCurrent() {
+  if (!current) return;
+  const s = current;
+  lastRejected = s; rejectedIds.add(s.channel_id);
+  streams = streams.filter(x => x.channel_id !== s.channel_id);
+  drawGuide();
+  next();
+  toast(`REJECTED CH ${chNum(s.channel_id)} · U to undo`);
+  try {
+    const r = await (await fetch("reject", { method: "POST", body: JSON.stringify({ channel_id: s.channel_id }) })).json();
+    if (r.result === "pending") toast("REJECTED · close channels.csv in Excel so it can save");
+  } catch { toast("can't reach tv.py, reject not saved"); }
+}
+async function undoReject() {
+  const s = lastRejected; if (!s) return toast("nothing to undo");
+  lastRejected = null; rejectedIds.delete(s.channel_id);
+  try { await fetch("unreject", { method: "POST", body: JSON.stringify({ channel_id: s.channel_id }) }); } catch {}
+  if (!streams.some(x => x.channel_id === s.channel_id)) streams.push(s);
+  drawGuide();
+  hist = hist.slice(0, histPos + 1); hist.push(s); histPos = hist.length - 1;
+  tune(s);
+  toast(`RESTORED CH ${chNum(s.channel_id)}`);
+}
+let toastTimer;
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2600); }
+
+// Poll every 3s until something's on the air, then once a minute.
+(function poll() { loadLive().finally(() => setTimeout(poll, streams.length ? REFRESH_MS : 3000)); })();
+</script>
+<script src="https://www.youtube.com/iframe_api"></script>
+</body>
+</html>

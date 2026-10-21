@@ -1,0 +1,63 @@
+# Checks which channels are live every 20 minutes and publishes the website.
+# Needs one repository secret: YT_API_KEY (Settings → Secrets and variables → Actions).
+name: Update live list
+
+on:
+  schedule:
+    - cron: "7,27,47 * * * *"   # every 20 minutes (GitHub may run these a few minutes late)
+  push:
+    branches: [main]
+  workflow_dispatch: {}          # "Run workflow" button for a manual refresh
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Remember the last-known live video for each channel between runs,
+      # so each check starts with a fast, cheap pass.
+      - uses: actions/cache/restore@v4
+        with:
+          path: live_state.json
+          key: live-state-${{ github.run_id }}
+          restore-keys: live-state-
+
+      - name: Check which channels are live
+        env:
+          YT_API_KEY: ${{ secrets.YT_API_KEY }}
+        run: python tv.py --once --no-browser
+
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: live_state.json
+          key: live-state-${{ github.run_id }}
+
+      - name: Build site
+        run: |
+          mkdir -p _site
+          cp index.html privacy.html live.json _site/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

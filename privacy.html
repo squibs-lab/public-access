@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · Public Access</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --room: #0f0d0b; --paper: #efe7d6; --ink: #1d1a16; --soft: #6b6458; --accent: #c8402a; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--room); color: var(--ink); font: 400 15px/1.65 "IBM Plex Mono", ui-monospace, Consolas, monospace; padding: clamp(16px, 5vw, 56px) 16px; display: flex; justify-content: center; }
+  main { background: var(--paper); width: min(720px, 100%); padding: clamp(20px, 4vw, 40px); border-radius: 3px; box-shadow: 0 18px 40px -16px rgba(0,0,0,.7); }
+  h1 { font: 800 clamp(28px, 5vw, 40px)/1 "Archivo", sans-serif; letter-spacing: -.015em; margin-bottom: 6px; }
+  h2 { font: 800 18px/1.2 "Archivo", sans-serif; margin: 28px 0 8px; }
+  p, li { margin-bottom: 10px; }
+  ul { padding-left: 20px; }
+  .date { color: var(--soft); font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
+  a { color: var(--accent); }
+  .back { display: inline-block; margin-bottom: 20px; font-size: 13px; color: var(--soft); text-decoration: none; }
+  .back:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="./">← back to the TV</a>
+  <h1>Privacy &amp; terms</h1>
+  <p class="date">Last updated October 2026</p>
+
+  <h2>The short version</h2>
+  <p>Public Access has no accounts, no sign-ups, no ads, no analytics and no cookies of its own. It doesn't collect or store anything about you.</p>
+
+  <h2>What the site does</h2>
+  <p>A small program checks a hand-picked list of public YouTube channels every 20 minutes and publishes which ones are live. When you turn on the TV, the page picks one of those streams at random and plays it.</p>
+
+  <h2>YouTube</h2>
+  <p>All video is played with YouTube's embedded player, and the channel list is checked using the <strong>YouTube API Services</strong>. That means:</p>
+  <ul>
+    <li>When a stream plays, your browser connects directly to YouTube, which may collect information under its own policies. The player is loaded in YouTube's privacy-enhanced mode.</li>
+    <li>By using this site you agree to the <a href="https://www.youtube.com/t/terms" rel="noopener">YouTube Terms of Service</a>.</li>
+    <li>Google's handling of data is described in the <a href="https://policies.google.com/privacy" rel="noopener">Google Privacy Policy</a>. You can review or revoke data access granted to apps at <a href="https://security.google.com/settings/security/permissions" rel="noopener">Google security settings</a>, though this site never asks for any access.</li>
+  </ul>
+
+  <h2>The streams</h2>
+  <p>Every stream belongs to its channel and is shown exactly as the channel publishes it. Public Access doesn't record, host, or re-broadcast any video. If you run one of these channels and would rather not be on the dial, get in touch and it'll be removed.</p>
+
+  <h2>Contact</h2>
+  <p>Questions, or want a channel removed? <a href="https://github.com/squibs-lab/public-access/issues" rel="noopener">Open an issue on the project's GitHub page</a>.</p>
+</main>
+</body>
+</html>

@@ -1,0 +1,9 @@
+# never publish the API key
+key.txt
+# generated / local-only
+live.json
+live_state.json
+rejected.txt
+*.tmp
+__pycache__/
+_site/
