@@ -1,4 +1,4 @@
-# Public Access
+# International Access
 
 International public access TV: flip through live, unperformed channels from around the world — church services, zoo cams, harbors, council meetings, trains.
 

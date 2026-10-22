@@ -3,25 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Public Access</title>
+<title>International Access</title>
 <meta name="description" content="Flip through live, unperformed public channels from around the world: church services, zoo cams, harbors, council meetings, trains.">
-<meta property="og:title" content="Public Access">
+<meta property="og:title" content="International Access">
 <meta property="og:description" content="International public access TV. Flip through live cameras and broadcasts from around the world.">
-<meta name="theme-color" content="#0f0d0b">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='12' width='56' height='40' rx='8' fill='%2324211d'/%3E%3Crect x='10' y='18' width='34' height='28' rx='4' fill='%23000'/%3E%3Ccircle cx='52' cy='26' r='3' fill='%23ff6a3d'/%3E%3Ccircle cx='52' cy='38' r='3' fill='%23c8402a'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#0b0b0a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='14' width='56' height='40' rx='4' fill='%23e2b12f'/%3E%3Crect x='9' y='19' width='38' height='24' rx='6' fill='%23121311'/%3E%3Crect x='51' y='22' width='5' height='11' rx='2' fill='%23999'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Archivo+Narrow:wght@500;700&family=Archivo:wght@800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --room: #0f0d0b;
-    --body: #24211d;
-    --body-hi: #34302a;
-    --body-lo: #161411;
-    --bezel: #0a0908;
-    --print: #9c958a;          /* labels "printed" on the plastic */
-    --led: #ff6a3d;
-    --led-glow: rgba(255, 106, 61, .55);
-    --vfd: #7dffd9;
+    --bg: #0b0b0a;
+    --y: #e8b52c;          /* case yellow */
+    --y-hi: #f6c843;
+    --y-lo: #c99a1f;
+    --y-deep: #a37a12;
+    --grey: #8f8f8c;
+    --grey-hi: #c4c4c0;
+    --grey-lo: #5c5c59;
+    --phosphor: #d6e6cf;
     --paper: #efe7d6;
     --ink: #1d1a16;
     --ink-soft: #6b6458;
@@ -29,96 +29,117 @@
     --led-font: "VT323", ui-monospace, monospace;
     --label-font: "Archivo Narrow", "Arial Narrow", sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .13 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
   * { box-sizing: border-box; margin: 0; }
   html, body { min-height: 100%; }
   body {
-    background: radial-gradient(ellipse 80% 60% at 50% 30%, #221d18, var(--room) 70%) fixed, var(--room);
+    background: radial-gradient(ellipse 70% 55% at 50% 38%, #1a1916, var(--bg) 70%) fixed, var(--bg);
     color: var(--paper); font-family: var(--label-font);
-    display: flex; flex-direction: column; align-items: center; gap: 28px;
-    padding: clamp(16px, 4vw, 48px) 16px 48px;
+    display: flex; flex-direction: column; align-items: center; gap: 30px;
+    padding: clamp(24px, 5vh, 64px) 16px 48px;
   }
 
-  /* ---------- the set ---------- */
-  .tv {
-    width: min(1240px, 100%);
-    display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 22px;
-    padding: 22px;
-    border-radius: 26px;
-    background: linear-gradient(180deg, var(--body-hi), var(--body) 18%, var(--body) 80%, var(--body-lo));
-    box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 -2px 0 rgba(0,0,0,.4) inset, 0 40px 80px -20px rgba(0,0,0,.8), 0 10px 24px rgba(0,0,0,.5);
+  /* ================= the set ================= */
+  .tv { width: min(1100px, 100%, 128vh); container-type: inline-size; position: relative; }
+  .tv > .case { margin-top: 16cqw; }
+
+  /* telescopic antenna */
+  .antenna { position: absolute; left: 30cqw; top: 16.4cqw; width: 34cqw; height: .55cqw; transform-origin: 0 50%; transform: rotate(-37deg);
+    border-radius: .3cqw; background: linear-gradient(180deg, #f4f4f1, #9d9d99 55%, #e0e0dc);
+    -webkit-mask: linear-gradient(90deg, #000 0 100%); }
+  .antenna::before { content: ""; position: absolute; inset: -.08cqw 0; background:
+      linear-gradient(90deg, transparent 32%, #6b6b68 32% 33%, transparent 33% 62%, #6b6b68 62% 63%, transparent 63% 86%, #6b6b68 86% 87%, transparent 87%); }
+  .antenna::after { content: ""; position: absolute; right: -.6cqw; top: 50%; width: 1.2cqw; height: 1.2cqw; margin-top: -.6cqw; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff, #9d9d99 70%); }
+  .antenna-base { position: absolute; left: 28.8cqw; top: 15.6cqw; width: 3cqw; height: 1.2cqw; border-radius: .6cqw .6cqw 0 0; background: linear-gradient(180deg, #d2d2ce, #8a8a86); }
+
+  .case {
+    position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 13.5cqw;
+    border-radius: 1.6cqw;
+    background: var(--noise), linear-gradient(180deg, var(--y-hi), var(--y) 18%, var(--y) 82%, var(--y-lo));
+    box-shadow: 0 2.6cqw 4cqw -1cqw rgba(0,0,0,.7), 0 .8cqw 1.6cqw rgba(0,0,0,.45), inset 0 .25cqw 0 rgba(255,240,190,.5), inset 0 -.35cqw 0 rgba(120,85,10,.55);
   }
-  .bezel {
-    background: var(--bezel); border-radius: 18px; padding: 14px;
-    box-shadow: 0 0 0 1px rgba(255,255,255,.05), inset 0 2px 10px rgba(0,0,0,.9);
-    display: flex; flex-direction: column; gap: 10px;
-  }
+  .face { padding: 2.2cqw 2.2cqw 2cqw 2.6cqw; display: flex; flex-direction: column; gap: 1.8cqw; }
+  .side { border-left: .22cqw solid rgba(120,85,10,.55); box-shadow: inset .2cqw 0 0 rgba(255,235,170,.45); display: flex; flex-direction: column; align-items: center; padding-top: 9cqw; }
+
+  /* raised frame → recessed well → tube */
+  .frame { position: relative; border-radius: 1cqw; padding: 2.4cqw 3.4cqw;
+    box-shadow: inset 0 0 0 .18cqw rgba(120,85,10,.45), inset .2cqw .2cqw 0 .18cqw rgba(255,235,170,.35); }
+  .frame i { position: absolute; top: 30%; width: .35cqw; height: 9cqw; background: rgba(110,78,8,.6); border-radius: .2cqw; box-shadow: .15cqw 0 0 rgba(255,235,170,.4); }
+  .frame i.l { left: .9cqw; } .frame i.r { right: .9cqw; }
+  .frame i.b { top: auto; bottom: 18%; }
+  .well { border-radius: 3.6cqw / 4.8cqw; padding: 3.2cqw 3.6cqw;
+    background: var(--noise), linear-gradient(180deg, var(--y-lo), var(--y) 30%, var(--y) 70%, var(--y-hi));
+    box-shadow: inset 0 1.4cqw 2.4cqw rgba(110,78,8,.55), inset 0 -.6cqw 1.2cqw rgba(255,240,190,.35); }
+  .tube { border-radius: 4.6cqw / 6.4cqw; padding: .6cqw; background: #4a4a47; box-shadow: 0 .3cqw .5cqw rgba(110,78,8,.6), inset 0 .15cqw 0 rgba(255,255,255,.12); }
+
   .screen {
-    position: relative; aspect-ratio: 16 / 9; width: 100%;
-    background: #000; border-radius: 8px; overflow: hidden;
+    position: relative; aspect-ratio: 16 / 9; width: 100%; overflow: hidden; cursor: pointer;
+    border-radius: 4cqw / 5.8cqw; background: #0e0f0d; container-type: inline-size;
   }
   /* Layers inside the screen never overlap the playing video:
      the player is only visible when nothing else is shown. */
   #player, .screen iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; }
-  .screen { cursor: pointer; }
   .screen:not(.playing) #player, .screen:not(.playing) iframe { visibility: hidden; }
   .screen.playing .layer { display: none; }
   .layer { position: absolute; inset: 0; }
   #static { width: 100%; height: 100%; image-rendering: pixelated; display: block; }
-  .card { display: grid; place-items: center; text-align: center; padding: 24px; background: #000; color: var(--vfd); font-family: var(--led-font); }
-  .card b { display: block; font-weight: 400; font-size: clamp(30px, 5vw, 64px); line-height: 1; text-shadow: 0 0 10px rgba(125,255,217,.5); }
-  .card span { display: block; margin-top: .6em; font-size: clamp(16px, 1.8vw, 22px); color: rgba(125,255,217,.6); }
-  #offcard .blink { animation: blink 1.4s steps(1) infinite; }
+  .card { display: grid; place-items: center; text-align: center; padding: 6cqw; font-family: var(--led-font); }
+  #offcard { background:
+      radial-gradient(ellipse 26% 22% at 76% 20%, rgba(255,255,245,.14), transparent 70%),
+      radial-gradient(ellipse 64% 60% at 50% 48%, #2c302a, #171a16 62%, #0b0c0a 100%); }
+  #offcard b { display: block; font-weight: 400; font-size: 8cqw; line-height: .95; color: rgba(214,230,207,.6); letter-spacing: .04em; }
+  #offcard span { display: block; margin-top: .7em; font-size: 2.8cqw; color: rgba(214,230,207,.5); }
+  #offcard .blink { animation: blink 1.6s steps(1) infinite; }
+  #emptycard { background: #0b0c0a; }
+  #emptycard b { display: block; font-weight: 400; font-size: 7cqw; color: var(--phosphor); text-shadow: 0 0 1.5cqw rgba(214,230,207,.4); }
+  #emptycard span { display: block; margin-top: .6em; font-size: 2.8cqw; color: rgba(214,230,207,.6); }
   .screen:not(.off) #offcard, .screen:not(.empty) #emptycard { display: none; }
   .screen.off #static { display: none; }
 
-  .plate { display: flex; justify-content: space-between; align-items: center; padding: 0 4px; }
-  .brand { font-family: "Archivo", sans-serif; font-weight: 800; font-size: 13px; letter-spacing: .38em; color: #cfc6b6; }
-  .brand i { font-style: normal; color: var(--accent); }
-  .model { font-family: var(--mono); font-size: 11px; color: #5a554d; letter-spacing: .1em; }
+  /* speaker strip with the two sliders */
+  .speaker { position: relative; height: 8.4cqw; border-radius: .8cqw; display: flex; align-items: center; justify-content: space-between; padding: 0 3.4cqw;
+    background: radial-gradient(circle, rgba(95,66,4,.75) 0 .2cqw, transparent .26cqw) 0 0 / .78cqw .78cqw, linear-gradient(180deg, var(--y-lo), var(--y));
+    box-shadow: inset 0 0 0 .18cqw rgba(120,85,10,.45), inset .2cqw .2cqw 0 .18cqw rgba(255,235,170,.3); }
+  .slot { position: relative; width: 10.6cqw; height: 4.4cqw; border-radius: .7cqw; background: linear-gradient(180deg, var(--y-deep), var(--y-lo));
+    box-shadow: inset 0 .5cqw .8cqw rgba(70,48,2,.7), 0 .12cqw 0 rgba(255,235,170,.5); cursor: pointer; border: 0; padding: 0; }
+  .slot .grip { position: absolute; top: .55cqw; bottom: .55cqw; left: .5cqw; width: 6cqw; border-radius: .5cqw; transition: left .25s cubic-bezier(.3,1.4,.5,1);
+    background: repeating-linear-gradient(90deg, transparent 0 1.6cqw, rgba(0,0,0,.25) 1.6cqw 1.75cqw, transparent 1.75cqw 1.95cqw) 1.4cqw 50% / calc(100% - 2.8cqw) 55% no-repeat,
+                linear-gradient(180deg, var(--grey-hi), var(--grey) 55%, var(--grey-lo));
+    box-shadow: 0 .25cqw .4cqw rgba(0,0,0,.45), inset 0 .1cqw 0 rgba(255,255,255,.6); }
+  .slot.on .grip { left: calc(100% - 6.5cqw); }
+  .slot .lbl { display: none; position: absolute; top: calc(100% + .9cqw); left: 50%; transform: translateX(-50%); font: 700 1.05cqw/1 var(--label-font); letter-spacing: .22em; color: rgba(90,62,4,.8); text-transform: uppercase; white-space: nowrap; }
+  .slot:focus-visible { outline: .25cqw solid #fff; outline-offset: .3cqw; }
 
-  /* ---------- control panel ---------- */
-  .panel { display: flex; flex-direction: column; gap: 18px; padding: 6px 2px; }
-  .label { font-family: var(--label-font); font-weight: 700; font-size: 11px; letter-spacing: .22em; color: var(--print); text-transform: uppercase; }
+  /* thumbwheel on the side */
+  .wheel-slot { width: 7.6cqw; height: 15cqw; border-radius: .9cqw; display: grid; place-items: center; background: linear-gradient(180deg, var(--y-deep), var(--y-lo));
+    box-shadow: inset 0 .6cqw 1cqw rgba(70,48,2,.7), 0 .12cqw 0 rgba(255,235,170,.5); }
+  .wheel { position: relative; width: 6.2cqw; height: 13.6cqw; border-radius: .9cqw / 2.2cqw; border: 0; padding: 0; cursor: pointer; overflow: hidden;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.08) 20%, rgba(255,255,255,.22) 48%, rgba(0,0,0,.05) 76%, rgba(0,0,0,.6)),   /* round the cylinder */
+      linear-gradient(90deg, transparent 39%, rgba(0,0,0,.45) 39% 41.5%, rgba(255,255,255,.35) 41.5% 43%, transparent 43%),               /* seam: face | ribbed edge */
+      linear-gradient(90deg, #a4a4a0 0, #8e8e8a 39%, transparent 39%),                                                                  /* smooth face */
+      repeating-linear-gradient(90deg, #c2c2be 0 .22cqw, #9a9a96 .22cqw .34cqw, #5e5e5b .34cqw .46cqw);                                 /* fine ribs */
+    box-shadow: 0 .3cqw .5cqw rgba(0,0,0,.45), inset 0 0 0 .08cqw rgba(0,0,0,.35); transition: background-position .3s ease-out; }
+  .wheel:focus-visible { outline: .25cqw solid #fff; outline-offset: .3cqw; }
+  .side .lbl { margin-top: 1.2cqw; font: 700 1.05cqw/1 var(--label-font); letter-spacing: .22em; color: rgba(90,62,4,.8); text-transform: uppercase; }
+  .badge { margin-top: auto; margin-bottom: 2.4cqw; font: 800 1cqw/1.25 "Archivo", sans-serif; letter-spacing: .14em; color: rgba(90,62,4,.85); text-align: center; text-transform: uppercase; }
 
-  .led {
-    background: #120705; border-radius: 8px; padding: 10px 14px 8px;
-    box-shadow: inset 0 2px 8px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.06);
-  }
-  .led .num { font-family: var(--led-font); font-size: 64px; line-height: .9; color: var(--led); text-shadow: 0 0 12px var(--led-glow); letter-spacing: .04em; }
-  .led .num .ghost { color: rgba(255,106,61,.09); text-shadow: none; }
-  .vfd { font-family: var(--led-font); font-size: 22px; color: var(--vfd); text-shadow: 0 0 8px rgba(125,255,217,.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px; }
+  .stand { display: flex; justify-content: space-between; width: 70cqw; margin: 0 auto; }
+  .stand i { width: 9cqw; height: 2.2cqw; background: linear-gradient(180deg, #2a2926, #111); border-radius: 0 0 .8cqw .8cqw; }
 
+  .press { transform: translateY(.15cqw); }
+  #b-down { display: none; }
 
-  .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .btn {
-    font: 700 13px/1 var(--label-font); letter-spacing: .18em; color: #d9d1c2; text-transform: uppercase;
-    padding: 14px 8px 12px; border: 0; border-radius: 8px; cursor: pointer;
-    background: linear-gradient(180deg, #3d3831, #2a2622);
-    box-shadow: 0 4px 0 #11100e, 0 6px 12px rgba(0,0,0,.5), 0 1px 0 rgba(255,255,255,.1) inset;
-    transition: transform .06s, box-shadow .06s;
-  }
-  .btn:active, .btn.pressed { transform: translateY(3px); box-shadow: 0 1px 0 #11100e, 0 2px 4px rgba(0,0,0,.5), 0 1px 0 rgba(255,255,255,.06) inset; }
-  .btn.wide { grid-column: span 2; }
-  .btn.power { color: #fff; background: linear-gradient(180deg, #d4513a, var(--accent)); }
-  .btn[aria-pressed="true"] { color: var(--led); }
-  .btn.power[aria-pressed="true"] { color: #fff; }
-  .btn:focus-visible { outline: 2px solid var(--vfd); outline-offset: 3px; }
-
-  .grille { flex: 1; min-height: 60px; border-radius: 8px;
-    background: repeating-linear-gradient(180deg, #0d0c0b 0 3px, transparent 3px 8px); opacity: .9; }
-
-  /* ---------- the listing (printed TV-guide card) ---------- */
+  /* ================= the listing ================= */
   .listing {
-    width: min(1240px, 100%);
-    background: var(--paper); color: var(--ink);
-    border-radius: 3px; padding: 18px 24px 20px;
-    display: grid; grid-template-columns: auto 1fr auto; gap: 6px 24px; align-items: start;
-    box-shadow: 0 18px 40px -16px rgba(0,0,0,.7);
+    width: min(1100px, 100%); background: var(--paper); color: var(--ink); border-radius: 3px; padding: 18px 24px 20px;
+    display: grid; grid-template-columns: auto 1fr auto; gap: 6px 24px; align-items: start; box-shadow: 0 18px 40px -16px rgba(0,0,0,.7);
   }
-  .listing .slot { font: 500 13px/1.3 var(--mono); color: var(--ink-soft); text-transform: uppercase; letter-spacing: .06em; padding-top: 6px; white-space: nowrap; }
-  .listing .slot b { display: block; font: 800 34px/1 "Archivo", sans-serif; color: var(--ink); letter-spacing: -.01em; margin-top: 2px; }
-  .listing h1 { font: 800 clamp(24px, 3vw, 36px)/1.02 "Archivo", sans-serif; letter-spacing: -.015em; }
+  .listing .slotline { font: 500 13px/1.3 var(--mono); color: var(--ink-soft); text-transform: uppercase; letter-spacing: .06em; padding-top: 6px; white-space: nowrap; }
+  .listing .slotline b { display: block; font: 800 34px/1 "Archivo", sans-serif; color: var(--ink); margin-top: 2px; }
+  .listing h1 { font: 800 clamp(22px, 3vw, 34px)/1.04 "Archivo", sans-serif; letter-spacing: -.015em; }
   .listing .show { font: 500 15px/1.4 var(--mono); color: var(--ink-soft); margin-top: 6px; overflow-wrap: anywhere; }
   .listing .meta { font: 500 14px/1.6 var(--mono); text-align: right; white-space: nowrap; padding-top: 6px; }
   .listing .live { display: inline-block; font: 700 12px/1 var(--label-font); letter-spacing: .2em; background: var(--accent); color: #fff; padding: 5px 7px 4px; margin-bottom: 6px; }
@@ -126,70 +147,75 @@
   .listing.idle h1 { color: var(--ink-soft); }
   .listing.idle .live { background: #8a8378; }
   .listing.idle .live::before { animation: none; }
+  .status { font: 400 18px/1 var(--led-font); color: #ffb08f; min-height: 18px; visibility: hidden; }
+  .status.show { visibility: visible; }
+  .status #num { display: none; }
+  .public .status { display: none; }
 
-  .foot { font: 400 12px/1.5 var(--mono); color: #5a554d; text-align: center; max-width: 720px; }
+  .foot { font: 400 12px/1.5 var(--mono); color: #5a554d; text-align: center; max-width: 760px; }
   .foot kbd { font: inherit; color: #8a8378; }
   .foot a { color: #8a8378; }
   .public .local-only { display: none; }
 
+  .remote { display: none; }
   @keyframes blink { 50% { opacity: 0; } }
 
-  /* ---------- phones / narrow ---------- */
-  @media (max-width: 860px) {
-    .tv { grid-template-columns: minmax(0, 1fr); padding: 12px; gap: 14px; border-radius: 18px; }
-    .bezel { padding: 8px; border-radius: 12px; }
-    .model { display: none; }
-    .panel { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "led" "btns"; gap: 12px; padding: 0; }
-    .led { grid-area: led; display: flex; align-items: baseline; gap: 14px; min-width: 0; }
-    .led .num { font-size: 44px; flex: none; }
-    .led .vfd { min-width: 0; font-size: 20px; }
-    .panel .label { display: none; }
-    .buttons { grid-area: btns; grid-template-columns: repeat(4, 1fr); }
-    .btn { padding: 13px 4px 11px; font-size: 12px; letter-spacing: .12em; }
-    .grille { display: none; }
-    .foot .keys { display: none; }
+  @media (max-width: 760px) {
+    body { gap: 18px; }
+    .slot .lbl, .side .lbl, .badge { display: none; }
+    .remote { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 460px; }
+    .remote button { font: 700 12px/1 var(--label-font); letter-spacing: .14em; text-transform: uppercase; color: #3a2a06; border: 0; border-radius: 8px;
+      padding: 14px 4px 12px; background: var(--y); box-shadow: 0 4px 0 var(--y-deep), 0 6px 10px rgba(0,0,0,.5); cursor: pointer; }
+    .remote button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--y-deep); }
     .listing { grid-template-columns: 1fr; padding: 16px; }
     .listing .meta { text-align: left; }
-    .listing .slot { display: flex; gap: 12px; align-items: baseline; }
-    .listing .slot b { font-size: 22px; }
+    .listing .slotline { display: flex; gap: 12px; align-items: baseline; }
+    .listing .slotline b { font-size: 22px; }
+    .foot .keys { display: none; }
   }
 </style>
 </head>
 <body>
 
 <main class="tv" aria-label="Television">
-  <section class="bezel">
-    <div class="screen off" id="screen">
-      <div id="player"></div>
-      <div class="layer"><canvas id="static" width="320" height="180"></canvas></div>
-      <div class="layer card" id="offcard"><div><b>PUBLIC ACCESS</b><span class="blink">press POWER or any key</span><span id="p-count"></span></div></div>
-      <div class="layer card" id="emptycard"><div><b>NO SIGNAL</b><span id="ns-msg">checking the airwaves…</span></div></div>
+  <div class="antenna-base" aria-hidden="true"></div>
+  <div class="antenna" aria-hidden="true"></div>
+  <div class="case">
+    <div class="face">
+      <div class="frame">
+        <i class="l"></i><i class="r"></i><i class="l b"></i><i class="r b"></i>
+        <div class="well">
+          <div class="tube">
+            <div class="screen off" id="screen">
+              <div id="player"></div>
+              <div class="layer"><canvas id="static" width="320" height="180"></canvas></div>
+              <div class="layer card" id="offcard"><div><b>INTERNATIONAL<br>ACCESS</b><span class="blink">slide POWER or press any key</span><span id="p-count"></span></div></div>
+              <div class="layer card" id="emptycard"><div><b>NO SIGNAL</b><span id="ns-msg">checking the airwaves…</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="speaker">
+        <button class="slot" id="b-mute" aria-pressed="false" aria-label="Sound on or off" title="Sound"><span class="grip"></span><span class="lbl">Sound</span></button>
+        <button class="slot" id="b-power" aria-label="Power" title="Power"><span class="grip"></span><span class="lbl">Power</span></button>
+      </div>
     </div>
-    <div class="plate">
-      <span class="brand">PUBLIC <i>●</i> ACCESS</span>
-      <span class="model">MODEL PA-1987 · WORLD RECEIVER</span>
+    <div class="side">
+      <div class="wheel-slot"><button class="wheel" id="b-up" aria-label="Turn the wheel: next channel" title="Next channel"></button></div>
+      <div class="lbl">Channel</div>
+      <div class="badge">International<br>Access</div>
     </div>
-  </section>
-
-  <aside class="panel" aria-label="Controls">
-    <div class="led" aria-live="polite">
-      <div class="label" style="color:#6d3a2c">Channel</div>
-      <div class="num" id="num"><span class="ghost">888</span></div>
-      <div class="vfd" id="vfd">STANDBY</div>
-    </div>
-
-    <div class="buttons">
-      <button class="btn" id="b-up" aria-label="Next channel">CH ▲</button>
-      <button class="btn" id="b-down" aria-label="Previous channel">CH ▼</button>
-      <button class="btn" id="b-mute" aria-pressed="false">Mute</button>
-      <button class="btn power" id="b-power">Power</button>
-    </div>
-    <div class="grille" aria-hidden="true"></div>
-  </aside>
+  </div>
+  <div class="stand" aria-hidden="true"><i></i><i></i></div>
+  <button id="b-down" aria-label="Previous channel"></button>
 </main>
 
+<div class="remote" aria-label="Remote">
+  <button data-for="b-up">CH ▲</button><button data-for="b-down">CH ▼</button><button data-for="b-mute">Sound</button><button data-for="b-power">Power</button>
+</div>
+
 <article class="listing idle" id="listing" aria-live="polite">
-  <div class="slot"><span id="l-time">—</span><b id="l-ch">—</b></div>
+  <div class="slotline"><span id="l-time">—</span><b id="l-ch">—</b></div>
   <div>
     <h1 id="l-who">Nothing on yet</h1>
     <div class="show" id="l-what">Turn on the set to start flipping through live public channels from around the world.</div>
@@ -200,10 +226,22 @@
     <span id="l-stats"></span>
   </div>
 </article>
+<div class="status"><span id="num"></span><span id="vfd"></span></div>
 
-<p class="foot"><span class="keys"><kbd>SPACE</kbd> or <kbd>↑</kbd> next · <kbd>↓</kbd> back · <kbd>M</kbd> mute · <kbd>F</kbd> fullscreen picture<span class="local-only"> · <kbd>X</kbd> reject · <kbd>U</kbd> undo</span><br></span>
+<p class="foot"><span class="keys">Roll the <b>wheel</b> or press <kbd>SPACE</kbd> for the next channel · <kbd>↓</kbd> back · <kbd>M</kbd> sound · <kbd>F</kbd> fullscreen picture<span class="local-only"> · <kbd>X</kbd> reject · <kbd>U</kbd> undo</span><br></span>
 Live streams are played with YouTube's player and belong to their channels. · <a href="privacy.html">Privacy</a></p>
 
+<script>
+document.querySelectorAll(".remote button").forEach(b => b.addEventListener("click", () => document.getElementById(b.dataset.for).click()));
+/* the thumbwheel rolls a notch each click */
+let wheelPos = 0;
+document.getElementById("b-up").addEventListener("click", () => { wheelPos += 0.23; document.getElementById("b-up").style.backgroundPosition = `0 0, 0 0, 0 0, ${wheelPos}cqw 0`; });
+/* sliders show their state: power slides right when on, sound slides right when muted */
+new MutationObserver(() => document.getElementById("b-power").classList.toggle("on", document.getElementById("b-power").getAttribute("aria-pressed") === "true"))
+  .observe(document.getElementById("b-power"), { attributes: true, attributeFilter: ["aria-pressed"] });
+new MutationObserver(() => document.getElementById("b-mute").classList.toggle("on", document.getElementById("b-mute").getAttribute("aria-pressed") === "true"))
+  .observe(document.getElementById("b-mute"), { attributes: true, attributeFilter: ["aria-pressed"] });
+</script>
 <script>
 const BAD_SKIP_MS = 12000, REFRESH_MS = 60000;
 
@@ -406,9 +444,9 @@ async function undoReject() {
 }
 let toastTimer;
 function toast(msg) {
-  const v = $("vfd"); v.textContent = msg; v.style.color = "#ffcf5a";
+  const v = $("vfd"); v.textContent = msg; v.style.color = "#ffcf5a"; v.parentElement.classList.add("show");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { v.style.color = ""; setLED(current); }, 2600);
+  toastTimer = setTimeout(() => { v.style.color = ""; v.parentElement.classList.remove("show"); setLED(current); }, 2600);
 }
 
 setLED(null);
