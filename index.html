@@ -45,13 +45,19 @@
   .tv > .case { margin-top: 16cqw; }
 
   /* telescopic antenna */
-  .antenna { position: absolute; left: 30cqw; top: 16.4cqw; width: 34cqw; height: .55cqw; transform-origin: 0 50%; transform: rotate(-37deg);
+  .antenna-hit { position: absolute; left: 30cqw; top: 12.4cqw; width: 36cqw; height: 8.5cqw; transform-origin: 0 50%; transform: rotate(var(--ang, -37deg));
+    border: 0; padding: 0; background: transparent; cursor: grab; touch-action: none; transition: transform .35s cubic-bezier(.3,1.6,.5,1); }
+  .antenna-hit.dragging { transition: none; cursor: grabbing; }
+  .antenna-hit:focus-visible { outline: .2cqw dashed rgba(255,255,255,.4); outline-offset: .2cqw; }
+  .antenna { position: absolute; left: 0; top: 50%; margin-top: -.275cqw; width: 34cqw; height: .55cqw;
     border-radius: .3cqw; background: linear-gradient(180deg, #f4f4f1, #9d9d99 55%, #e0e0dc);
     -webkit-mask: linear-gradient(90deg, #000 0 100%); }
   .antenna::before { content: ""; position: absolute; inset: -.08cqw 0; background:
       linear-gradient(90deg, transparent 32%, #6b6b68 32% 33%, transparent 33% 62%, #6b6b68 62% 63%, transparent 63% 86%, #6b6b68 86% 87%, transparent 87%); }
   .antenna::after { content: ""; position: absolute; right: -.6cqw; top: 50%; width: 1.2cqw; height: 1.2cqw; margin-top: -.6cqw; border-radius: 50%;
     background: radial-gradient(circle at 35% 35%, #fff, #9d9d99 70%); }
+  .tv.lost .antenna { animation: antpulse 1.1s ease-in-out infinite; }
+  @keyframes antpulse { 50% { box-shadow: 0 0 1.2cqw .3cqw rgba(255,214,120,.75); } }
   .antenna-base { position: absolute; left: 28.8cqw; top: 15.6cqw; width: 3cqw; height: 1.2cqw; border-radius: .6cqw .6cqw 0 0; background: linear-gradient(180deg, #d2d2ce, #8a8a86); }
 
   .case {
@@ -97,6 +103,16 @@
   #emptycard span { display: block; margin-top: .6em; font-size: 2.8cqw; color: rgba(214,230,207,.6); }
   .screen:not(.off) #offcard, .screen:not(.empty) #emptycard { display: none; }
   .screen.off #static { display: none; }
+  /* lost signal: the real player stays hidden; the ghost is the stream's thumbnail */
+  #ghost, #losthint { display: none; }
+  .screen.lost #ghost { display: block; background: center / cover no-repeat; filter: grayscale(.5) contrast(1.15) blur(.15cqw); opacity: var(--ghost, .1);
+    animation: vroll var(--roll, .6s) linear infinite; }
+  @keyframes vroll { from { background-position: 50% 0%; } to { background-position: 50% 100%; } }
+  .screen.lost #staticwrap { opacity: var(--snow, 1); }
+  .screen.lost #losthint { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; padding: 4cqw 5cqw; font-family: var(--led-font); color: var(--phosphor);
+    text-shadow: 0 0 1cqw rgba(0,0,0,.9), 0 0 .3cqw #000; pointer-events: none; }
+  #losthint b { font-weight: 400; font-size: max(4.6cqw, 15px); line-height: 1; letter-spacing: .06em; }
+  #losthint span { font-size: max(2.6cqw, 12px); margin-top: .4em; opacity: .85; animation: blink 1.4s steps(1) infinite; }
 
   /* speaker strip with the two sliders */
   .speaker { position: relative; height: 8.4cqw; border-radius: .8cqw; display: flex; align-items: center; justify-content: space-between; padding: 0 3.4cqw;
@@ -109,28 +125,35 @@
                 linear-gradient(180deg, var(--grey-hi), var(--grey) 55%, var(--grey-lo));
     box-shadow: 0 .25cqw .4cqw rgba(0,0,0,.45), inset 0 .1cqw 0 rgba(255,255,255,.6); }
   .slot.on .grip { left: calc(100% - 6.5cqw); }
-  .slot .lbl { display: none; position: absolute; top: calc(100% + .9cqw); left: 50%; transform: translateX(-50%); font: 700 1.05cqw/1 var(--label-font); letter-spacing: .22em; color: rgba(90,62,4,.8); text-transform: uppercase; white-space: nowrap; }
+  .sw { display: flex; align-items: center; gap: 1.2cqw; }
+  .plate { font: 700 1.15cqw/1 var(--label-font); letter-spacing: .24em; color: rgba(80,55,4,.9); text-transform: uppercase; white-space: nowrap;
+    background: var(--noise), var(--y); padding: .75cqw 1cqw .65cqw 1.24cqw; border-radius: .4cqw;
+    box-shadow: inset 0 0 0 .14cqw rgba(120,85,10,.4), 0 .12cqw 0 rgba(255,235,170,.4); }
   .slot:focus-visible { outline: .25cqw solid #fff; outline-offset: .3cqw; }
 
-  /* thumbwheel on the side */
-  .wheel-slot { width: 7.6cqw; height: 15cqw; border-radius: .9cqw; display: grid; place-items: center; background: linear-gradient(180deg, var(--y-deep), var(--y-lo));
+  /* channel arrows on the side */
+  .ch-slot { width: 8.4cqw; padding: .8cqw; border-radius: .9cqw; display: flex; flex-direction: column; gap: .8cqw; background: linear-gradient(180deg, var(--y-deep), var(--y-lo));
     box-shadow: inset 0 .6cqw 1cqw rgba(70,48,2,.7), 0 .12cqw 0 rgba(255,235,170,.5); }
-  .wheel { position: relative; width: 6.2cqw; height: 13.6cqw; border-radius: .9cqw / 2.2cqw; border: 0; padding: 0; cursor: pointer; overflow: hidden;
-    background:
-      linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.08) 20%, rgba(255,255,255,.22) 48%, rgba(0,0,0,.05) 76%, rgba(0,0,0,.6)),   /* round the cylinder */
-      linear-gradient(90deg, transparent 39%, rgba(0,0,0,.45) 39% 41.5%, rgba(255,255,255,.35) 41.5% 43%, transparent 43%),               /* seam: face | ribbed edge */
-      linear-gradient(90deg, #a4a4a0 0, #8e8e8a 39%, transparent 39%),                                                                  /* smooth face */
-      repeating-linear-gradient(90deg, #c2c2be 0 .22cqw, #9a9a96 .22cqw .34cqw, #5e5e5b .34cqw .46cqw);                                 /* fine ribs */
-    box-shadow: 0 .3cqw .5cqw rgba(0,0,0,.45), inset 0 0 0 .08cqw rgba(0,0,0,.35); transition: background-position .3s ease-out; }
-  .wheel:focus-visible { outline: .25cqw solid #fff; outline-offset: .3cqw; }
+  .ch-btn { height: 6.4cqw; border: 0; border-radius: .6cqw; cursor: pointer; display: grid; place-items: center; padding: 0;
+    background: linear-gradient(180deg, var(--grey-hi), var(--grey) 55%, var(--grey-lo));
+    box-shadow: 0 .35cqw 0 #3e3e3b, 0 .5cqw .7cqw rgba(0,0,0,.45), inset 0 .1cqw 0 rgba(255,255,255,.6); transition: transform .06s, box-shadow .06s; }
+  .ch-btn::before { content: ""; width: 2.2cqw; height: 1.6cqw; background: #3a3a37; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  .ch-btn.down::before { clip-path: polygon(0 0, 100% 0, 50% 100%); }
+  .ch-btn:active, .ch-btn.pressed { transform: translateY(.3cqw); box-shadow: 0 .05cqw 0 #3e3e3b, 0 .1cqw .3cqw rgba(0,0,0,.45); }
+  .ch-btn:focus-visible { outline: .25cqw solid #fff; outline-offset: .3cqw; }
   .side .lbl { margin-top: 1.2cqw; font: 700 1.05cqw/1 var(--label-font); letter-spacing: .22em; color: rgba(90,62,4,.8); text-transform: uppercase; }
+  .meter { margin-top: 3cqw; display: flex; align-items: flex-end; gap: .45cqw; height: 3.4cqw; padding: .55cqw .7cqw; border-radius: .6cqw; background: #1a1305;
+    box-shadow: inset 0 .25cqw .5cqw rgba(0,0,0,.8), 0 .12cqw 0 rgba(255,235,170,.5); }
+  .meter i { width: .9cqw; background: #3a2c0c; border-radius: .15cqw; transition: background .2s, box-shadow .2s; }
+  .meter i:nth-child(1) { height: 20%; } .meter i:nth-child(2) { height: 40%; } .meter i:nth-child(3) { height: 60%; } .meter i:nth-child(4) { height: 80%; } .meter i:nth-child(5) { height: 100%; }
+  .meter i.lit { background: #ffb347; box-shadow: 0 0 .5cqw rgba(255,179,71,.7); }
+  .tv.lost .meter i.lit { background: #ff6a3d; box-shadow: 0 0 .5cqw rgba(255,106,61,.7); }
   .badge { margin-top: auto; margin-bottom: 2.4cqw; font: 800 1cqw/1.25 "Archivo", sans-serif; letter-spacing: .14em; color: rgba(90,62,4,.85); text-align: center; text-transform: uppercase; }
 
   .stand { display: flex; justify-content: space-between; width: 70cqw; margin: 0 auto; }
   .stand i { width: 9cqw; height: 2.2cqw; background: linear-gradient(180deg, #2a2926, #111); border-radius: 0 0 .8cqw .8cqw; }
 
   .press { transform: translateY(.15cqw); }
-  #b-down { display: none; }
 
   /* ================= the listing ================= */
   .listing {
@@ -162,7 +185,7 @@
 
   @media (max-width: 760px) {
     body { gap: 18px; }
-    .slot .lbl, .side .lbl, .badge { display: none; }
+    .plate, .side .lbl, .badge { display: none; }
     .remote { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 460px; }
     .remote button { font: 700 12px/1 var(--label-font); letter-spacing: .14em; text-transform: uppercase; color: #3a2a06; border: 0; border-radius: 8px;
       padding: 14px 4px 12px; background: var(--y); box-shadow: 0 4px 0 var(--y-deep), 0 6px 10px rgba(0,0,0,.5); cursor: pointer; }
@@ -177,9 +200,9 @@
 </head>
 <body>
 
-<main class="tv" aria-label="Television">
+<main class="tv" id="tv" aria-label="Television">
   <div class="antenna-base" aria-hidden="true"></div>
-  <div class="antenna" aria-hidden="true"></div>
+  <button class="antenna-hit" id="antenna" aria-label="Adjust the antenna" title="Adjust the antenna"><span class="antenna"></span></button>
   <div class="case">
     <div class="face">
       <div class="frame">
@@ -188,7 +211,9 @@
           <div class="tube">
             <div class="screen off" id="screen">
               <div id="player"></div>
-              <div class="layer"><canvas id="static" width="320" height="180"></canvas></div>
+              <div class="layer" id="ghost"></div>
+              <div class="layer" id="staticwrap"><canvas id="static" width="320" height="180"></canvas></div>
+              <div class="layer" id="losthint"><b>WEAK SIGNAL</b><span>adjust the antenna</span></div>
               <div class="layer card" id="offcard"><div><b>INTERNATIONAL<br>ACCESS</b><span class="blink">slide POWER or press any key</span><span id="p-count"></span></div></div>
               <div class="layer card" id="emptycard"><div><b>NO SIGNAL</b><span id="ns-msg">checking the airwaves…</span></div></div>
             </div>
@@ -196,18 +221,19 @@
         </div>
       </div>
       <div class="speaker">
-        <button class="slot" id="b-mute" aria-pressed="false" aria-label="Sound on or off" title="Sound"><span class="grip"></span><span class="lbl">Sound</span></button>
-        <button class="slot" id="b-power" aria-label="Power" title="Power"><span class="grip"></span><span class="lbl">Power</span></button>
+        <div class="sw"><button class="slot" id="b-mute" aria-pressed="false" aria-label="Sound on or off" title="Sound"><span class="grip"></span></button><span class="plate">Sound</span></div>
+        <div class="sw"><span class="plate">Power</span><button class="slot" id="b-power" aria-label="Power" title="Power"><span class="grip"></span></button></div>
       </div>
     </div>
     <div class="side">
-      <div class="wheel-slot"><button class="wheel" id="b-up" aria-label="Turn the wheel: next channel" title="Next channel"></button></div>
+      <div class="ch-slot"><button class="ch-btn up" id="b-up" aria-label="Next channel" title="Next channel"></button><button class="ch-btn down" id="b-down" aria-label="Previous channel" title="Previous channel"></button></div>
       <div class="lbl">Channel</div>
+      <div class="meter" id="meter" aria-label="Signal strength"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="lbl">Signal</div>
       <div class="badge">International<br>Access</div>
     </div>
   </div>
   <div class="stand" aria-hidden="true"><i></i><i></i></div>
-  <button id="b-down" aria-label="Previous channel"></button>
 </main>
 
 <div class="remote" aria-label="Remote">
@@ -228,14 +254,13 @@
 </article>
 <div class="status"><span id="num"></span><span id="vfd"></span></div>
 
-<p class="foot"><span class="keys">Roll the <b>wheel</b> or press <kbd>SPACE</kbd> for the next channel · <kbd>↓</kbd> back · <kbd>M</kbd> sound · <kbd>F</kbd> fullscreen picture<span class="local-only"> · <kbd>X</kbd> reject · <kbd>U</kbd> undo</span><br></span>
+<p class="foot"><span class="keys"><kbd>▲</kbd> <kbd>▼</kbd> or <kbd>SPACE</kbd> change channel · tap the <b>antenna</b> when the signal drops · <kbd>M</kbd> sound · <kbd>F</kbd> fullscreen picture<span class="local-only"> · <kbd>X</kbd> reject · <kbd>U</kbd> undo</span><br></span>
 Live streams are played with YouTube's player and belong to their channels. · <a href="privacy.html">Privacy</a></p>
 
 <script>
-document.querySelectorAll(".remote button").forEach(b => b.addEventListener("click", () => document.getElementById(b.dataset.for).click()));
-/* the thumbwheel rolls a notch each click */
-let wheelPos = 0;
-document.getElementById("b-up").addEventListener("click", () => { wheelPos += 0.23; document.getElementById("b-up").style.backgroundPosition = `0 0, 0 0, 0 0, ${wheelPos}cqw 0`; });
+document.querySelectorAll(".remote button").forEach(b => b.addEventListener("click", () => {
+  document.getElementById(b.dataset.for).click();
+}));
 /* sliders show their state: power slides right when on, sound slides right when muted */
 new MutationObserver(() => document.getElementById("b-power").classList.toggle("on", document.getElementById("b-power").getAttribute("aria-pressed") === "true"))
   .observe(document.getElementById("b-power"), { attributes: true, attributeFilter: ["aria-pressed"] });
@@ -288,9 +313,11 @@ function next() {
   const fresh = p.filter(s => !recent.has(s.video_id)), from = fresh.length ? fresh : p;
   const pick = from[Math.floor(Math.random() * from.length)];
   hist = hist.slice(0, histPos + 1); hist.push(pick); histPos = hist.length - 1;
+  if (lost) endLost();
+  if (++sinceLoss >= lossAt && hist.length > 1) return loseSignal(pick);
   tune(pick);
 }
-function back() { if (histPos > 0) tune(hist[--histPos]); }
+function back() { if (histPos > 0) { if (lost) endLost(); tune(hist[--histPos]); } }
 function tune(s) {
   current = s;
   screen.classList.remove("playing", "empty");
@@ -309,11 +336,11 @@ function onYouTubeIframeAPIReady() {
     events: {
       onReady: () => { playerReady = true; if (current) player.loadVideoById(current.video_id); },
       onStateChange: e => {
-        if (e.data === YT.PlayerState.PLAYING && on) {
+        if (e.data === YT.PlayerState.PLAYING && on && !lost) {
           clearTimeout(skipTimer);
           soundOn ? player.unMute() : player.mute();
-          setTimeout(() => { if (on && current) { screen.classList.add("playing"); stopStatic(); } }, 250);
-        } else if (e.data === YT.PlayerState.PAUSED && on && current) { player.playVideo(); }   // never sit on YouTube's pause screen
+          setTimeout(() => { if (on && current && !lost) { screen.classList.add("playing"); stopStatic(); setMeter(1); } }, 250);
+        } else if (e.data === YT.PlayerState.PAUSED && on && current && !lost) { player.playVideo(); }   // never sit on YouTube's pause screen
         else if (e.data === YT.PlayerState.ENDED && current) { bad.add(current.video_id); next(); }
       },
       onError: () => { if (current) { bad.add(current.video_id); next(); } },
@@ -381,6 +408,102 @@ function tick() {
 setInterval(tick, 1000); tick();
 
 
+
+/* ---------- lost signal: every 6–10 channels the set drifts off-station ----------
+   Any ~3 seconds of fiddling with the antenna brings it back.
+   Every channel is equally easy; it's theater, not a puzzle. While lost, the real
+   player is stopped and hidden, so nothing is ever drawn over a playing video. */
+const FIDDLE_NEEDED = 3;            // seconds of fiddling
+const randLossAt = () => 6 + Math.floor(Math.random() * 5);
+let lost = null, sinceLoss = 0, lossAt = randLossAt();
+const tvEl = $("tv"), antenna = $("antenna");
+let antAngle = -37;
+
+function setMeter(p) { [...$("meter").children].forEach((b, i) => b.classList.toggle("lit", p > 0 && i < Math.max(1, Math.ceil(p * 5)))); }
+setMeter(0);
+
+function loseSignal(s) {
+  current = s; sinceLoss = 0; lossAt = randLossAt();
+  clearTimeout(skipTimer);
+  if (playerReady) player.stopVideo();
+  screen.classList.remove("playing", "empty"); screen.classList.add("lost"); tvEl.classList.add("lost");
+  $("ghost").style.backgroundImage = `url(https://i.ytimg.com/vi/${s.video_id}/mqdefault.jpg)`;
+  setLED(s); setListing(s); $("l-live").textContent = "WEAK SIGNAL";
+  lost = { s, got: 0 };
+  if (!raf) drawStatic();
+  startHiss();
+  render();
+}
+function fiddle(seconds) {
+  if (!lost) return;
+  lost.got = Math.min(FIDDLE_NEEDED, lost.got + seconds);
+  render();
+  if (lost.got >= FIDDLE_NEEDED) lockIn();
+}
+function render() {
+  const p = lost ? lost.got / FIDDLE_NEEDED : 1;
+  screen.style.setProperty("--snow", (1 - .8 * p).toFixed(2));
+  screen.style.setProperty("--ghost", (.18 + .72 * p).toFixed(2));
+  screen.style.setProperty("--roll", (.35 + 2.4 * p).toFixed(2) + "s");
+  if (hissGain) hissGain.gain.value = soundOn ? .06 * (1 - .8 * p) : 0;
+  setMeter(.15 + .85 * p);
+}
+function lockIn() {
+  const s = lost.s;
+  endLost(); clunk();
+  tune(s);   // the normal path: brief static, then the real live player
+}
+function endLost() {
+  lost = null; stopHiss();
+  screen.classList.remove("lost"); tvEl.classList.remove("lost");
+  screen.style.removeProperty("--snow"); screen.style.removeProperty("--ghost");
+}
+
+/* sound: steady hiss while lost, a soft clunk when it locks in */
+let hissSrc = null, hissGain = null;
+function startHiss() {
+  if (!audio || hissSrc) return;
+  const buf = audio.createBuffer(1, audio.sampleRate * 2, audio.sampleRate), ch = buf.getChannelData(0);
+  for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
+  hissGain = audio.createGain(); hissGain.gain.value = soundOn ? .06 : 0;
+  hissSrc = audio.createBufferSource(); hissSrc.buffer = buf; hissSrc.loop = true;
+  hissSrc.connect(hissGain).connect(audio.destination); hissSrc.start();
+}
+function stopHiss() { if (hissSrc) { hissSrc.stop(); hissSrc = null; hissGain = null; } }
+function clunk() {
+  if (!audio || !soundOn) return;
+  const o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime;
+  o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(55, t + .12);
+  g.gain.setValueAtTime(.18, t); g.gain.exponentialRampToValueAtTime(.001, t + .18);
+  o.connect(g).connect(audio.destination); o.start(t); o.stop(t + .2);
+}
+
+/* the antenna: click/tap to swing it, or grab and drag. Every bit counts. */
+function setAngle(a) { antAngle = Math.max(-46, Math.min(-14, a)); antenna.style.setProperty("--ang", antAngle + "deg"); }
+let drag = null;
+antenna.addEventListener("pointerdown", e => {
+  e.preventDefault(); antenna.setPointerCapture(e.pointerId);
+  const r = antenna.getBoundingClientRect();
+  drag = { x0: e.clientX, y0: e.clientY, a0: antAngle, t: performance.now(), moved: false, ox: r.left, oy: r.top + r.height / 2 };
+  antenna.classList.add("dragging");
+});
+antenna.addEventListener("pointermove", e => {
+  if (!drag) return;
+  const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
+  if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+  setAngle(drag.a0 + (dy - dx) * -.25);
+  const now = performance.now(); fiddle((now - drag.t) / 1000); drag.t = now;   // dragging counts in real time
+});
+const endDrag = e => {
+  if (!drag) return;
+  antenna.classList.remove("dragging");
+  if (!drag.moved) { setAngle(antAngle + (Math.random() < .5 ? -1 : 1) * (5 + Math.random() * 6)); fiddle(.75); }   // a tap swings it
+  drag = null;
+};
+antenna.addEventListener("pointerup", endDrag);
+antenna.addEventListener("pointercancel", endDrag);
+antenna.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); setAngle(antAngle + 18 * (Math.random() < .5 ? -1 : 1)); fiddle(.7); } });
+
 /* ---------- buttons + keys ---------- */
 function power() {
   on = !on;
@@ -390,6 +513,7 @@ function power() {
     try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); } catch {}
     next();
   } else {
+    if (lost) endLost();
     current = null; clearTimeout(skipTimer); stopStatic();
     screen.classList.remove("playing", "empty");
     if (playerReady) player.stopVideo();
@@ -414,6 +538,7 @@ document.addEventListener("keydown", e => {
   else if (k === "arrowdown" || k === "arrowleft") { e.preventDefault(); press("b-down", back); }
   else if (k === "x" && LOCAL) rejectCurrent();   // reject/undo only work on your own machine (tv.py)
   else if (k === "u" && LOCAL) undoReject();
+  else if (k === "a" && lost) { setAngle(antAngle + 18 * (Math.random() < .5 ? -1 : 1)); fiddle(.7); }
   else if (k === "m") press("b-mute", () => $("b-mute").click());
   else if (k === "f") document.fullscreenElement ? document.exitFullscreen() : screen.requestFullscreen();
 });
