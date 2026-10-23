@@ -109,10 +109,14 @@
     animation: vroll var(--roll, .6s) linear infinite; }
   @keyframes vroll { from { background-position: 50% 0%; } to { background-position: 50% 100%; } }
   .screen.lost #staticwrap { opacity: var(--snow, 1); }
-  .screen.lost #losthint { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; padding: 4cqw 5cqw; font-family: var(--led-font); color: var(--phosphor);
-    text-shadow: 0 0 1cqw rgba(0,0,0,.9), 0 0 .3cqw #000; pointer-events: none; }
-  #losthint b { font-weight: 400; font-size: max(4.6cqw, 15px); line-height: 1; letter-spacing: .06em; }
-  #losthint span { font-size: max(2.6cqw, 12px); margin-top: .4em; opacity: .85; animation: blink 1.4s steps(1) infinite; }
+  /* big, centered caption on a dark band so it reads over the static */
+  .screen.lost #losthint { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none;
+    font-family: var(--led-font); color: #f2f7ee; }
+  #losthint b, #losthint span { background: rgba(0,0,0,.72); box-shadow: 0 0 0 .6cqw rgba(0,0,0,.72); text-shadow: 0 0 1.2cqw rgba(214,230,207,.45); }
+  #losthint b { font-weight: 400; font-size: max(10cqw, 26px); line-height: .95; letter-spacing: .06em; padding: .5cqw 2.4cqw .2cqw; border-radius: .6cqw .6cqw 0 0; }
+  #losthint span { font-size: max(4.6cqw, 15px); line-height: 1.1; letter-spacing: .04em; padding: .4cqw 2.4cqw 1.2cqw; border-radius: 0 0 .6cqw .6cqw; color: #ffd27a;
+    animation: hintpulse 1.6s ease-in-out infinite; }
+  @keyframes hintpulse { 50% { color: #fff3cf; } }
 
   /* speaker strip with the two sliders */
   .speaker { position: relative; height: 8.4cqw; border-radius: .8cqw; display: flex; align-items: center; justify-content: space-between; padding: 0 3.4cqw;
@@ -121,10 +125,14 @@
   .slot { position: relative; width: 10.6cqw; height: 4.4cqw; border-radius: .7cqw; background: linear-gradient(180deg, var(--y-deep), var(--y-lo));
     box-shadow: inset 0 .5cqw .8cqw rgba(70,48,2,.7), 0 .12cqw 0 rgba(255,235,170,.5); cursor: pointer; border: 0; padding: 0; }
   .slot .grip { position: absolute; top: .55cqw; bottom: .55cqw; left: .5cqw; width: 6cqw; border-radius: .5cqw; transition: left .25s cubic-bezier(.3,1.4,.5,1);
-    background: repeating-linear-gradient(90deg, transparent 0 1.6cqw, rgba(0,0,0,.25) 1.6cqw 1.75cqw, transparent 1.75cqw 1.95cqw) 1.4cqw 50% / calc(100% - 2.8cqw) 55% no-repeat,
-                linear-gradient(180deg, var(--grey-hi), var(--grey) 55%, var(--grey-lo));
+    background: linear-gradient(180deg, var(--grey-hi), var(--grey) 55%, var(--grey-lo));
     box-shadow: 0 .25cqw .4cqw rgba(0,0,0,.45), inset 0 .1cqw 0 rgba(255,255,255,.6); }
   .slot.on .grip { left: calc(100% - 6.5cqw); }
+  .slot .grip::after { position: absolute; inset: 0; display: grid; place-items: center; font: 700 max(1.45cqw, 8px)/1 var(--label-font); letter-spacing: .16em; padding-left: .16em;
+    color: #2b2b28; text-shadow: 0 .08cqw 0 rgba(255,255,255,.55); content: "OFF"; }
+  #b-power.on .grip::after { content: "ON"; }
+  #b-mute .grip::after { content: "ON"; }          /* sound is on until muted */
+  #b-mute.on .grip::after { content: "OFF"; }
   .sw { display: flex; align-items: center; gap: 1.2cqw; }
   .plate { font: 700 1.15cqw/1 var(--label-font); letter-spacing: .24em; color: rgba(80,55,4,.9); text-transform: uppercase; white-space: nowrap;
     background: var(--noise), var(--y); padding: .75cqw 1cqw .65cqw 1.24cqw; border-radius: .4cqw;
