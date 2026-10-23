@@ -115,9 +115,6 @@
     animation: vroll var(--roll, .6s) linear infinite; }
   @keyframes vroll { from { background-position: 50% 0%; } to { background-position: 50% 100%; } }
   .screen.lost #staticwrap { opacity: var(--snow, 1); }
-  /* tuning in: while a stream starts, its picture ghosts through the static (player still hidden) */
-  .screen.tuning #ghost { display: block; background: center / cover no-repeat; filter: grayscale(.35) contrast(1.1) blur(.12cqw); opacity: .42; animation: vroll 1.8s linear infinite; }
-  .screen.tuning #staticwrap { opacity: .6; }
   /* big, centered caption on a dark band so it reads over the static */
   .screen.lost #losthint { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none;
     font-family: var(--led-font); color: #f2f7ee; }
@@ -342,8 +339,6 @@ function back() { if (histPos > 0) { if (lost) endLost(); tune(hist[--histPos]);
 function tune(s) {
   current = s;
   screen.classList.remove("playing", "empty");
-  $("ghost").style.backgroundImage = `url(https://i.ytimg.com/vi/${s.video_id}/mqdefault.jpg)`;
-  screen.classList.add("tuning");
   startStatic();
   setLED(s); setListing(s);
   clearTimeout(skipTimer);
