@@ -115,6 +115,9 @@
     animation: vroll var(--roll, .6s) linear infinite; }
   @keyframes vroll { from { background-position: 50% 0%; } to { background-position: 50% 100%; } }
   .screen.lost #staticwrap { opacity: var(--snow, 1); }
+  /* tuning in: while a stream starts, its picture ghosts through the static (player still hidden) */
+  .screen.tuning #ghost { display: block; background: center / cover no-repeat; filter: grayscale(.35) contrast(1.1) blur(.12cqw); opacity: .42; animation: vroll 1.8s linear infinite; }
+  .screen.tuning #staticwrap { opacity: .6; }
   /* big, centered caption on a dark band so it reads over the static */
   .screen.lost #losthint { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none;
     font-family: var(--led-font); color: #f2f7ee; }
@@ -182,6 +185,8 @@
   .listing .live { display: inline-block; font: 700 12px/1 var(--label-font); letter-spacing: .2em; background: var(--accent); color: #fff; padding: 5px 7px 4px; margin-bottom: 6px; }
   .listing .live::before { content: "● "; animation: blink 1.4s steps(1) infinite; }
   .listing.idle h1 { color: var(--ink-soft); }
+  .soundhint { display: inline-block; margin-top: 4px; font: 700 12px/1 var(--label-font); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+  .soundhint[hidden] { display: none; }
   .listing.idle .live { background: #8a8378; }
   .listing.idle .live::before { animation: none; }
   .status { font: 400 18px/1 var(--led-font); color: #ffb08f; min-height: 18px; visibility: hidden; }
@@ -263,7 +268,8 @@
   <div class="meta">
     <span class="live" id="l-live">OFF AIR</span><br>
     <span id="l-where"></span><br>
-    <span id="l-stats"></span>
+    <span id="l-stats"></span><br>
+    <span class="soundhint" id="l-sound" hidden>🔇 Tap anywhere for sound</span>
   </div>
 </article>
 <div class="status"><span id="num"></span><span id="vfd"></span></div>
@@ -283,7 +289,7 @@ new MutationObserver(() => document.getElementById("b-mute").classList.toggle("o
 </script>
 <script>
 const DEAD_SKIP_MS = 9000, BUFFER_GRACE_MS = 20000, REFRESH_MS = 60000;   // skip silent streams fast, give buffering ones time
-let unmuteAt = 0;
+let unmuteAt = 0, soundBlocked = false;
 
 let streams = [], hist = [], histPos = -1, bad = new Set();
 let player = null, playerReady = false, soundOn = true, current = null, skipTimer = null, on = false;
@@ -336,6 +342,8 @@ function back() { if (histPos > 0) { if (lost) endLost(); tune(hist[--histPos]);
 function tune(s) {
   current = s;
   screen.classList.remove("playing", "empty");
+  $("ghost").style.backgroundImage = `url(https://i.ytimg.com/vi/${s.video_id}/mqdefault.jpg)`;
+  screen.classList.add("tuning");
   startStatic();
   setLED(s); setListing(s);
   clearTimeout(skipTimer);
@@ -357,13 +365,13 @@ function onYouTubeIframeAPIReady() {
       onStateChange: e => {
         if (e.data === YT.PlayerState.PLAYING && on && !lost) {
           clearTimeout(skipTimer);
-          if (soundOn) { player.unMute(); unmuteAt = Date.now(); } else player.mute();
-          setTimeout(() => { if (on && current && !lost) { screen.classList.add("playing"); stopStatic(); setMeter(1); } }, 250);
+          if (soundOn && !soundBlocked) { player.unMute(); unmuteAt = Date.now(); } else player.mute();
+          setTimeout(() => { if (on && current && !lost) { screen.classList.remove("tuning"); screen.classList.add("playing"); stopStatic(); setMeter(1); } }, 250);
         } else if (e.data === YT.PlayerState.BUFFERING && on && current && !lost && !current._grace) {
           current._grace = true; armSkip(current, BUFFER_GRACE_MS);   // it's loading, just slowly (common on phones)
         } else if (e.data === YT.PlayerState.PAUSED && on && current && !lost) {
-          if (Date.now() - unmuteAt < 2500) {   // the phone refused sound: keep playing silently and show SOUND as OFF
-            soundOn = false; $("b-mute").setAttribute("aria-pressed", "true"); player.mute(); unmuteAt = 0;
+          if (Date.now() - unmuteAt < 2500) {   // the phone refused sound: keep playing silently, ask for a tap
+            unmuteAt = 0; player.mute(); setSoundBlocked(true);
           }
           player.playVideo();   // never sit on YouTube's pause screen
         }
@@ -374,22 +382,35 @@ function onYouTubeIframeAPIReady() {
   });
 }
 
+function setSoundBlocked(v) { soundBlocked = v; $("l-sound").hidden = !(v && soundOn); }
+function retrySound() { if (!playerReady || !soundOn) return; setSoundBlocked(false); player.unMute(); player.playVideo(); unmuteAt = Date.now(); }
+document.addEventListener("pointerdown", () => { if (soundBlocked && soundOn && on) retrySound(); }, true);   // any tap is permission
+
 /* ---------- static ---------- */
-const cv = $("static"), cx = cv.getContext("2d"), img = cx.createImageData(cv.width, cv.height);
-let raf = null, audio = null, hiss = null;
-function drawStatic() {
-  const d = img.data;
+/* A handful of pre-made noise frames cycled at ~24fps: looks the same as live noise
+   but leaves the phone's processor free for the video player that's starting up. */
+const cv = $("static"), cx = cv.getContext("2d");
+const SNOW = Array.from({ length: 6 }, () => {
+  const f = document.createElement("canvas"); f.width = cv.width; f.height = cv.height;
+  const c = f.getContext("2d"), im = c.createImageData(f.width, f.height), d = im.data;
   for (let i = 0; i < d.length; i += 4) { const v = Math.random() * 255 | 0; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; }
-  cx.putImageData(img, 0, 0); raf = requestAnimationFrame(drawStatic);
+  c.putImageData(im, 0, 0); return f;
+});
+let raf = null, audio = null, hiss = null, snowAt = 0, snowI = 0, hissBuf = null;
+function drawStatic(t = 0) {
+  if (t - snowAt > 40) { snowAt = t; snowI = (snowI + 1 + (Math.random() * 4 | 0)) % SNOW.length; cx.drawImage(SNOW[snowI], 0, 0); }
+  raf = requestAnimationFrame(drawStatic);
 }
 function startStatic() {
   if (!raf) drawStatic();
   if (soundOn && audio) {
     hiss && hiss.stop();
-    const buf = audio.createBuffer(1, audio.sampleRate * .5, audio.sampleRate), ch = buf.getChannelData(0);
-    for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / ch.length);
+    if (!hissBuf) {   // make the burst once and reuse it
+      hissBuf = audio.createBuffer(1, audio.sampleRate * .5, audio.sampleRate); const ch = hissBuf.getChannelData(0);
+      for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / ch.length);
+    }
     const g = audio.createGain(); g.gain.value = .05;
-    hiss = audio.createBufferSource(); hiss.buffer = buf; hiss.connect(g).connect(audio.destination); hiss.start();
+    hiss = audio.createBufferSource(); hiss.buffer = hissBuf; hiss.connect(g).connect(audio.destination); hiss.start();
   }
 }
 function stopStatic() { cancelAnimationFrame(raf); raf = null; }
@@ -452,7 +473,7 @@ function loseSignal(s) {
   current = s; sinceLoss = 0; lossAt = randLossAt();
   clearTimeout(skipTimer);
   if (playerReady) player.stopVideo();
-  screen.classList.remove("playing", "empty"); screen.classList.add("lost"); tvEl.classList.add("lost");
+  screen.classList.remove("playing", "empty", "tuning"); screen.classList.add("lost"); tvEl.classList.add("lost");
   $("ghost").style.backgroundImage = `url(https://i.ytimg.com/vi/${s.video_id}/mqdefault.jpg)`;
   setLED(s); setListing(s); $("l-live").textContent = "WEAK SIGNAL";
   lost = { s, got: 0 };
@@ -541,7 +562,7 @@ function power() {
   } else {
     if (lost) endLost();
     current = null; clearTimeout(skipTimer); stopStatic();
-    screen.classList.remove("playing", "empty");
+    screen.classList.remove("playing", "empty", "tuning");
     if (playerReady) player.stopVideo();
     setLED(null); setListing(null);
   }
@@ -554,7 +575,7 @@ $("b-up").onclick = () => on ? next() : power();
 $("b-down").onclick = () => on ? back() : power();
 $("b-mute").onclick = () => {
   soundOn = !soundOn; $("b-mute").setAttribute("aria-pressed", !soundOn);
-  if (playerReady) { if (soundOn) { player.unMute(); player.playVideo(); unmuteAt = 0; } else player.mute(); }   // a tap on SOUND counts as permission
+  if (playerReady) { if (soundOn) { setSoundBlocked(false); player.unMute(); player.playVideo(); unmuteAt = Date.now(); } else { player.mute(); setSoundBlocked(soundBlocked); } }
 };
 document.addEventListener("keydown", e => {
   if (e.target.closest && e.target.closest("button") && e.key === "Enter") return;   // Enter still presses a focused button; Space is always CH+
