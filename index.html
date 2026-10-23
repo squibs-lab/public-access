@@ -9,6 +9,10 @@
 <meta property="og:description" content="International public access TV. Flip through live cameras and broadcasts from around the world.">
 <meta name="theme-color" content="#0b0b0a">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='14' width='56' height='40' rx='4' fill='%23e2b12f'/%3E%3Crect x='9' y='19' width='38' height='24' rx='6' fill='%23121311'/%3E%3Crect x='51' y='22' width='5' height='11' rx='2' fill='%23999'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://www.youtube-nocookie.com">
+<link rel="preconnect" href="https://www.youtube.com">
+<link rel="preconnect" href="https://i.ytimg.com">
+<link rel="dns-prefetch" href="https://googlevideo.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Archivo+Narrow:wght@500;700&family=Archivo:wght@800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -45,6 +49,8 @@
   .tv > .case { margin-top: 16cqw; }
 
   /* telescopic antenna */
+  button, .screen { -webkit-tap-highlight-color: transparent; }
+  .antenna-hit { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
   .antenna-hit { position: absolute; left: 30cqw; top: 12.4cqw; width: 36cqw; height: 8.5cqw; transform-origin: 0 50%; transform: rotate(var(--ang, -37deg));
     border: 0; padding: 0; background: transparent; cursor: grab; touch-action: none; transition: transform .35s cubic-bezier(.3,1.6,.5,1); }
   .antenna-hit.dragging { transition: none; cursor: grabbing; }
@@ -276,7 +282,8 @@ new MutationObserver(() => document.getElementById("b-mute").classList.toggle("o
   .observe(document.getElementById("b-mute"), { attributes: true, attributeFilter: ["aria-pressed"] });
 </script>
 <script>
-const BAD_SKIP_MS = 12000, REFRESH_MS = 60000;
+const DEAD_SKIP_MS = 9000, BUFFER_GRACE_MS = 20000, REFRESH_MS = 60000;   // skip silent streams fast, give buffering ones time
+let unmuteAt = 0;
 
 let streams = [], hist = [], histPos = -1, bad = new Set();
 let player = null, playerReady = false, soundOn = true, current = null, skipTimer = null, on = false;
@@ -332,23 +339,34 @@ function tune(s) {
   startStatic();
   setLED(s); setListing(s);
   clearTimeout(skipTimer);
-  skipTimer = setTimeout(() => { if (current === s) { bad.add(s.video_id); next(); } }, BAD_SKIP_MS);
-  if (playerReady) player.loadVideoById(s.video_id);
+  armSkip(s, DEAD_SKIP_MS); s._grace = false;
+  if (playerReady) { player.mute(); player.loadVideoById(s.video_id); }   // always start muted: phones allow that; sound comes on once it plays
+}
+function armSkip(s, ms) {
+  clearTimeout(skipTimer);
+  skipTimer = setTimeout(() => { if (current === s && !lost) { bad.add(s.video_id); next(); } }, ms);
 }
 
 /* ---------- YouTube player ---------- */
 function onYouTubeIframeAPIReady() {
   player = new YT.Player("player", {
     width: "100%", height: "100%", host: "https://www.youtube-nocookie.com",
-    playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0, iv_load_policy: 3, playsinline: 1, rel: 0 },
+    playerVars: { autoplay: 1, mute: 1, controls: 0, disablekb: 1, fs: 0, iv_load_policy: 3, playsinline: 1, rel: 0 },
     events: {
-      onReady: () => { playerReady = true; if (current) player.loadVideoById(current.video_id); },
+      onReady: () => { playerReady = true; player.mute(); if (current && !lost) player.loadVideoById(current.video_id); },
       onStateChange: e => {
         if (e.data === YT.PlayerState.PLAYING && on && !lost) {
           clearTimeout(skipTimer);
-          soundOn ? player.unMute() : player.mute();
+          if (soundOn) { player.unMute(); unmuteAt = Date.now(); } else player.mute();
           setTimeout(() => { if (on && current && !lost) { screen.classList.add("playing"); stopStatic(); setMeter(1); } }, 250);
-        } else if (e.data === YT.PlayerState.PAUSED && on && current && !lost) { player.playVideo(); }   // never sit on YouTube's pause screen
+        } else if (e.data === YT.PlayerState.BUFFERING && on && current && !lost && !current._grace) {
+          current._grace = true; armSkip(current, BUFFER_GRACE_MS);   // it's loading, just slowly (common on phones)
+        } else if (e.data === YT.PlayerState.PAUSED && on && current && !lost) {
+          if (Date.now() - unmuteAt < 2500) {   // the phone refused sound: keep playing silently and show SOUND as OFF
+            soundOn = false; $("b-mute").setAttribute("aria-pressed", "true"); player.mute(); unmuteAt = 0;
+          }
+          player.playVideo();   // never sit on YouTube's pause screen
+        }
         else if (e.data === YT.PlayerState.ENDED && current) { bad.add(current.video_id); next(); }
       },
       onError: () => { if (current) { bad.add(current.video_id); next(); } },
@@ -536,7 +554,7 @@ $("b-up").onclick = () => on ? next() : power();
 $("b-down").onclick = () => on ? back() : power();
 $("b-mute").onclick = () => {
   soundOn = !soundOn; $("b-mute").setAttribute("aria-pressed", !soundOn);
-  if (playerReady) soundOn ? player.unMute() : player.mute();
+  if (playerReady) { if (soundOn) { player.unMute(); player.playVideo(); unmuteAt = 0; } else player.mute(); }   // a tap on SOUND counts as permission
 };
 document.addEventListener("keydown", e => {
   if (e.target.closest && e.target.closest("button") && e.key === "Enter") return;   // Enter still presses a focused button; Space is always CH+
