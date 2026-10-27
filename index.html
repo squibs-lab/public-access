@@ -332,7 +332,8 @@ function next() {
   const pick = from[Math.floor(Math.random() * from.length)];
   hist = hist.slice(0, histPos + 1); hist.push(pick); histPos = hist.length - 1;
   if (lost) endLost();
-  if (++sinceLoss >= lossAt && hist.length > 1) return loseSignal(pick);
+  const isTurn = !firstPick; firstPick = false;          // the channel you land on at power-on isn't a turn
+  if (isTurn && ++sinceLoss >= lossAt) return loseSignal(pick);
   tune(pick);
 }
 function back() { if (histPos > 0) { if (lost) endLost(); tune(hist[--histPos]); } }
@@ -451,13 +452,14 @@ setInterval(tick, 1000); tick();
 
 
 
-/* ---------- lost signal: every 6–10 channels the set drifts off-station ----------
+/* ---------- lost signal: after 2 channel changes, then every 5–6, the set drifts off-station ----------
    Any ~3 seconds of fiddling with the antenna brings it back.
    Every channel is equally easy; it's theater, not a puzzle. While lost, the real
    player is stopped and hidden, so nothing is ever drawn over a playing video. */
 const FIDDLE_NEEDED = 3;            // seconds of fiddling
-const randLossAt = () => 6 + Math.floor(Math.random() * 5);
-let lost = null, sinceLoss = 0, lossAt = randLossAt();
+const FIRST_LOSS_AT = 3;                                   // two normal channel changes, then the first weak signal
+const randLossAt = () => 5 + Math.floor(Math.random() * 2);   // after that, every 5–6 changes
+let lost = null, sinceLoss = 0, lossAt = FIRST_LOSS_AT, firstPick = false;
 const tvEl = $("tv"), antenna = $("antenna");
 let antAngle = -37;
 
@@ -553,7 +555,7 @@ function power() {
   screen.classList.toggle("off", !on);
   if (on) {
     try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); } catch {}
-    next();
+    firstPick = true; next();
   } else {
     if (lost) endLost();
     current = null; clearTimeout(skipTimer); stopStatic();
