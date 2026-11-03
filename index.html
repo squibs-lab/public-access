@@ -132,9 +132,9 @@
   /* big, centered caption on a dark band so it reads over the static */
   .screen.lost #losthint { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none;
     font-family: var(--led-font); color: #f2f7ee; }
-  #losthint b, #losthint span { background: rgba(0,0,0,.72); box-shadow: 0 0 0 .6cqw rgba(0,0,0,.72); text-shadow: 0 0 1.2cqw rgba(214,230,207,.45); }
-  #losthint b { font-weight: 400; font-size: max(10cqw, 26px); line-height: .95; letter-spacing: .06em; padding: .5cqw 2.4cqw .2cqw; border-radius: .6cqw .6cqw 0 0; }
-  #losthint span { font-size: max(4.6cqw, 15px); line-height: 1.1; letter-spacing: .04em; padding: .4cqw 2.4cqw 1.2cqw; border-radius: 0 0 .6cqw .6cqw; color: #ffd27a;
+  #losthint b, #losthint span { background: rgba(0,0,0,.78); text-shadow: 0 0 1.2cqw rgba(214,230,207,.45); border-radius: .7cqw; }
+  #losthint b { font-weight: 400; font-size: max(10cqw, 26px); line-height: .95; letter-spacing: .06em; padding: 1cqw 2.6cqw .7cqw; }
+  #losthint span { font-size: max(4.6cqw, 15px); line-height: 1.1; letter-spacing: .04em; padding: .7cqw 2.2cqw .8cqw; margin-top: max(1.4cqw, 7px); color: #ffd27a;
     animation: hintpulse 1.6s ease-in-out infinite; }
   @keyframes hintpulse { 50% { color: #fff3cf; } }
 
