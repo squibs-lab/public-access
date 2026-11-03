@@ -418,13 +418,13 @@ function armSkip(s, ms) {
 function onYouTubeIframeAPIReady() {
   player = new YT.Player("player", {
     width: "100%", height: "100%", host: "https://www.youtube-nocookie.com",
-    playerVars: { autoplay: 1, mute: 1, controls: 0, disablekb: 1, fs: 0, iv_load_policy: 3, playsinline: 1, rel: 0 },
+    playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0, iv_load_policy: 3, playsinline: 1, rel: 0 },
     events: {
       onReady: () => { playerReady = true; player.mute(); if (current && !lost) player.loadVideoById(current.video_id); },
       onStateChange: e => {
         if (e.data === YT.PlayerState.PLAYING && on && !lost) {
           clearTimeout(skipTimer);
-          if (soundOn && !soundBlocked) { player.unMute(); unmuteAt = Date.now(); } else player.mute();
+          if (soundOn && !soundBlocked) ensureSound(); else player.mute();
           setTimeout(() => { if (on && current && !lost) { screen.classList.remove("tuning"); screen.classList.add("playing"); stopStatic(); setMeter(1); } }, 250);
         } else if (e.data === YT.PlayerState.BUFFERING && on && current && !lost && !current._grace) {
           current._grace = true; armSkip(current, BUFFER_GRACE_MS);   // it's loading, just slowly (common on phones)
@@ -442,7 +442,19 @@ function onYouTubeIframeAPIReady() {
 }
 
 function setSoundBlocked(v) { soundBlocked = v; $("l-sound").hidden = !(v && soundOn); }
-function retrySound() { if (!playerReady || !soundOn) return; setSoundBlocked(false); player.unMute(); player.playVideo(); unmuteAt = Date.now(); }
+/* Ask for sound, then check the player really is unmuted; YouTube can quietly re-mute a
+   video right after it starts, so retry a few times before deciding the browser blocked it. */
+let soundCheck = null;
+function ensureSound(tries = 0) {
+  clearTimeout(soundCheck);
+  if (!playerReady || !soundOn || lost) return;
+  player.unMute(); player.setVolume(100); unmuteAt = Date.now();
+  soundCheck = setTimeout(() => {
+    if (!soundOn || lost || !player.isMuted) return;
+    if (player.isMuted()) { tries < 3 ? ensureSound(tries + 1) : setSoundBlocked(true); }
+  }, 350 + tries * 200);
+}
+function retrySound() { if (!playerReady || !soundOn) return; setSoundBlocked(false); player.playVideo(); ensureSound(); }
 document.addEventListener("pointerdown", () => { if (soundBlocked && soundOn && on) retrySound(); }, true);   // any tap is permission
 
 /* ---------- static ---------- */
@@ -635,7 +647,7 @@ $("b-up").onclick = () => on ? next() : power();
 $("b-down").onclick = () => on ? back() : power();
 $("b-mute").onclick = () => {
   soundOn = !soundOn; $("b-mute").setAttribute("aria-pressed", !soundOn);
-  if (playerReady) { if (soundOn) { setSoundBlocked(false); player.unMute(); player.playVideo(); unmuteAt = Date.now(); } else { player.mute(); setSoundBlocked(soundBlocked); } }
+  if (playerReady) { if (soundOn) { setSoundBlocked(false); player.playVideo(); ensureSound(); } else { clearTimeout(soundCheck); player.mute(); setSoundBlocked(soundBlocked); } }
 };
 document.addEventListener("keydown", e => {
   if (e.target.closest && e.target.closest("button") && e.key === "Enter") return;   // Enter still presses a focused button; Space is always CH+
