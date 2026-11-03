@@ -53,7 +53,7 @@ jobs:
       - name: Build site
         run: |
           mkdir -p _site
-          cp index.html privacy.html live.json _site/
+          cp index.html privacy.html live.json favicon.svg favicon-32.png apple-touch-icon.png icon-512.png _site/
 
       - uses: actions/upload-pages-artifact@v3
         with:

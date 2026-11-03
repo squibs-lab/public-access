@@ -365,7 +365,8 @@ class Handler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
             return
-        if path not in ("/", "/index.html", "/fullscreen.html", "/privacy.html", "/favicon.ico"):
+        if path not in ("/", "/index.html", "/fullscreen.html", "/privacy.html", "/favicon.ico",
+                        "/favicon.svg", "/favicon-32.png", "/apple-touch-icon.png", "/icon-512.png"):
             self.send_error(404)   # don't serve the rest of the folder (key.txt!)
             return
         return super().do_GET()
